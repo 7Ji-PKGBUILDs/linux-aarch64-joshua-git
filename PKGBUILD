@@ -20,7 +20,7 @@ source=(git+$url/linux.git#tag=v6.7-rk3588
         )
 
 sha512sums=('SKIP'
-        'SKIP'
+        '098a37910efd2d39b9f04d0d3c11f3ebb63756571e62354a8d2e287935c8119019906e71c1e4783cecc045e584b20c5f4ef24ed6dd18e9696730e0e45f2fffe0'
         '2dc6b0ba8f7dbf19d2446c5c5f1823587de89f4e28e9595937dd51a87755099656f2acec50e3e2546ea633ad1bfd1c722e0c2b91eef1d609103d8abdc0a7cbaf')
 
 prepare() {

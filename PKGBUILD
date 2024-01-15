@@ -15,10 +15,12 @@ pkgdesc="Linux kernel package targeting to pretest 6.7 merges for rk3588"
 makedepends=('cpio' 'xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'vboot-utils' 'dtc')
 options=('!strip')
 source=(git+$url/linux.git#tag=v6.7-rk3588
+        'mfd_defconfig'
         'linux.preset'
         )
 
 sha512sums=('SKIP'
+        '57135a8a6b05e29e89cd055e8940aa52479e4a600eff949a5077c79a8db3b3d059c69192823c7ca8fc26dc6614ec5d439f14d6931f26085a635d521199ff76f5'
         '2dc6b0ba8f7dbf19d2446c5c5f1823587de89f4e28e9595937dd51a87755099656f2acec50e3e2546ea633ad1bfd1c722e0c2b91eef1d609103d8abdc0a7cbaf')
 
 prepare() {

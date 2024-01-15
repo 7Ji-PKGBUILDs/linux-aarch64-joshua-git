@@ -7,7 +7,7 @@ _kernel_tag="rockchip-git"
 pkgbase=linux-$_kernel_tag
 pkgname=("${pkgbase}-headers" $pkgbase)
 pkgver=6.7.0
-pkgrel=1
+pkgrel=2
 arch=('aarch64')
 license=('GPL2')
 url="https://github.com/Joshua-Riek"
@@ -15,12 +15,10 @@ pkgdesc="Linux kernel package targeting to pretest 6.7 merges for rk3588"
 makedepends=('cpio' 'xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'vboot-utils' 'dtc')
 options=('!strip')
 source=(git+$url/linux.git#tag=v6.7-rk3588
-        'rockchip_defconfig'
         'linux.preset'
         )
 
 sha512sums=('SKIP'
-        '098a37910efd2d39b9f04d0d3c11f3ebb63756571e62354a8d2e287935c8119019906e71c1e4783cecc045e584b20c5f4ef24ed6dd18e9696730e0e45f2fffe0'
         '2dc6b0ba8f7dbf19d2446c5c5f1823587de89f4e28e9595937dd51a87755099656f2acec50e3e2546ea633ad1bfd1c722e0c2b91eef1d609103d8abdc0a7cbaf')
 
 prepare() {
@@ -35,7 +33,9 @@ prepare() {
     patch -p1 -N -i $p || true
   done
   
-  cp -f ../../rockchip_defconfig ./.config
+  cp -f arch/arm64/configs/rockchip_defconfig ./.config
+
+  scripts/kconfig/merge_config.sh -m .config ../../mfd_defconfig
   
   make olddefconfig prepare
   make -s kernelrelease > version

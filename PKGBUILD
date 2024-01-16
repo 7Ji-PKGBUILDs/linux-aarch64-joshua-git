@@ -1,50 +1,70 @@
 # AArch64 multi-platform
 # Maintainer: Jat-faan Wong
-# Contributor: Jat-faan Wong, Joshua-Riek 
+# Contributor: Jat-faan Wong, Guoxin "7Ji" Pu, Joshua-Riek 
 
-_pkgver=6.7
-_kernel_tag="rockchip-git"
-pkgbase=linux-$_kernel_tag
-pkgname=("${pkgbase}-headers" $pkgbase)
-pkgver=6.7.0
-pkgrel=3
+_pkgbase=linux-rockchip-joshua
+pkgbase="${_pkgbase}"-git
+pkgname=("${pkgbase}"{,-headers})
+pkgver=6.7.0.r1235704.5b9831b062b0
+pkgrel=1
 arch=('aarch64')
 license=('GPL2')
 url="https://github.com/Joshua-Riek"
-pkgdesc="Linux kernel package targeting to pretest 6.7 merges for rk3588" 
+_desc="with patches picked by Joshua Riek focusing on RK3588" 
 makedepends=('cpio' 'xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'vboot-utils' 'dtc')
 options=('!strip')
-source=(git+$url/linux.git#tag=v6.7-rk3588
-        'custom_reconfig'
-        'linux.preset'
-        )
+_srcname='linux'
+source=(
+  "git+${url}/${_srcname}.git"
+  'custom_reconfig'
+  'linux.preset'
+)
 
-sha512sums=('SKIP'
-        '35c10b164f15c8b6544d23aa01afecb716c133e889c45cce6c97e7f3aaf27c136b0140230624ba1f124ac5c57b8bd75d5c3bbe9f11004ae2eaaea9c6bb3b550f'
-        '2dc6b0ba8f7dbf19d2446c5c5f1823587de89f4e28e9595937dd51a87755099656f2acec50e3e2546ea633ad1bfd1c722e0c2b91eef1d609103d8abdc0a7cbaf')
+sha512sums=(
+  'SKIP'
+  '35c10b164f15c8b6544d23aa01afecb716c133e889c45cce6c97e7f3aaf27c136b0140230624ba1f124ac5c57b8bd75d5c3bbe9f11004ae2eaaea9c6bb3b550f'
+  '2dc6b0ba8f7dbf19d2446c5c5f1823587de89f4e28e9595937dd51a87755099656f2acec50e3e2546ea633ad1bfd1c722e0c2b91eef1d609103d8abdc0a7cbaf'
+)
 
 prepare() {
-  cd linux
+  cd "${_srcname}"
 
-  echo "-$pkgrel" > localversion.10-pkgrel
-  echo "-$_kernel_tag" > localversion.20-pkgname
+  echo "Setting version..."
+  echo - > localversion.09-hyphen
+  {
+    printf r 
+    git rev-list --count HEAD
+  } > localversion.10-rev-kernel
+  echo - > localversion.19-hyphen
+  git rev-parse --short HEAD > localversion.20-id-kernel
+  echo "-${pkgrel}" > localversion.30-pkgrel
+  echo "${pkgbase#linux}" > localversion.40-pkgname
   
   # this is only for local builds so there is no need to integrity check. (if needed)
   for p in ../../custom/*.patch; do
     echo "Custom Patching with ${p}"
     patch -p1 -N -i $p || true
   done
-  
-  cp -f arch/arm64/configs/rockchip_defconfig ./.config
 
-  scripts/kconfig/merge_config.sh -m .config ../../custom_reconfig
-  
+  echo "Preparing config..."
+  cat arch/arm64/configs/rockchip_defconfig > .config
+  scripts/kconfig/merge_config.sh -m .config ../custom_reconfig
   make olddefconfig prepare
+
   make -s kernelrelease > version
+  echo "Prepared for $(<version)"
+}
+
+pkgver() {
+  cd "${_srcname}"
+  printf '%s.%s.%s' \
+    "$(make kernelversion)" \
+    "$(<localversion.10-rev-kernel)" \
+    "$(<localversion.20-id-kernel)"
 }
 
 build() {
-  cd linux
+  cd "${_srcname}"
 
   unset LDFLAGS
   make ${MAKEFLAGS} Image modules
@@ -52,49 +72,40 @@ build() {
 }
 
 _package() {
-  pkgdesc="Linux kernel package targeting to pretest 6.7 merges for rk3588"
-  depends=('coreutils' 'kmod' 'mkinitcpio>=0.7')
+  pkgdesc="The linux kernel, ${_desc}"
+  depends=('coreutils' 'kmod' 'initramfs')
   optdepends=('wireless-regdb: to set the correct wireless channels of your country')
-  provides=("linux=${pkgver}" "linux-${_kernel_tag}")
-  conflicts=("linux-${_kernel_tag}")
-  backup=("etc/mkinitcpio.d/linux-${_kernel_tag}.preset")
+  backup=("etc/mkinitcpio.d/${pkgbase}.preset")
 
-  cd linux
-  
-  local _version="$(<version)"
+  cd "${_srcname}"
   
   # install dtbs
-  make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs/linux-$_kernel_tag" dtbs_install
+  make INSTALL_DTBS_PATH="${pkgdir}/boot/dtbs/${pkgbase}" dtbs_install
 
   # install modules
-  make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 modules_install
+  make INSTALL_MOD_PATH="${pkgdir}/usr" INSTALL_MOD_STRIP=1 modules_install
 
   # copy kernel
-  install -Dm644 arch/arm64/boot/Image "$pkgdir/usr/lib/modules/$_version/vmlinuz"
+  local _dir_module="${pkgdir}/usr/lib/modules/$(<version)"
+  install -Dm644 arch/arm64/boot/Image "${_dir_module}/vmlinuz"
 
-  # sed expression for following substitutions
-  local _subst="
-    s|%PKGBASE%|linux-${_kernel_tag}|g
-    s|%KERNVER%|${_version}|g
-  "
+  # remove reference to build host
+  rm -f "${_dir_module}/"{build,source}
 
   # used by mkinitcpio to name the kernel
-  echo "linux-$_kernel_tag" | install -Dm644 /dev/stdin "$pkgdir/usr/lib/modules/$_version/pkgbase"
+  echo "${pkgbase}" | install -D -m 644 /dev/stdin "${_dir_module}/pkgbase"
 
   # install mkinitcpio preset file
-  sed "$_subst" ../linux.preset |
-    install -Dm644 /dev/stdin "$pkgdir/etc/mkinitcpio.d/linux-$_kernel_tag.preset"
+  sed "s|%PKGBASE%|${pkgbase}|g" ../linux.preset |
+    install -Dm644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
 }
 
 _package-headers() {
-  pkgdesc="Linux kernel header package targeting to pretest 6.7 merges for rk3588"
+  pkgdesc="Headers and scripts for building modules for the Linux kernel, ${_desc}"
   depends=("python")
-  provides=("linux-headers=${pkgver}" "linux-${_kernel_tag}-headers")
-  conflicts=("linux-${_kernel_tag}-headers")
 
-  cd linux
-  local _version="$(<version)"
-  local builddir="$pkgdir/usr/lib/modules/$_version/build"
+  cd "${_srcname}"
+  local builddir="${pkgdir}/usr/lib/modules/$(<version)/build"
 
   echo "Installing build files..."
   install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map version
@@ -168,6 +179,6 @@ _package-headers() {
 
 for _p in ${pkgname[@]}; do
   eval "package_${_p}() {
-    _package${_p#linux-${_kernel_tag}}
+    _package${_p#${pkgbase}}
   }"
 done

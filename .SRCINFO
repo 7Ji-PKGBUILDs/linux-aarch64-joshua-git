@@ -1,7 +1,6 @@
-pkgbase = linux-rockchip-git
-	pkgdesc = Linux kernel package targeting to pretest 6.7 merges for rk3588
-	pkgver = 6.7.0
-	pkgrel = 3
+pkgbase = linux-joshua-git
+	pkgver = 6.7.0.r1235704.5b9831b062b0
+	pkgrel = 1
 	url = https://github.com/Joshua-Riek
 	arch = aarch64
 	license = GPL2
@@ -16,13 +15,13 @@ pkgbase = linux-rockchip-git
 	makedepends = vboot-utils
 	makedepends = dtc
 	options = !strip
-	source = git+https://github.com/Joshua-Riek/linux.git#tag=v6.7-rk3588
+	source = git+https://github.com/Joshua-Riek/linux.git
 	source = custom_reconfig
 	source = linux.preset
 	sha512sums = SKIP
 	sha512sums = 35c10b164f15c8b6544d23aa01afecb716c133e889c45cce6c97e7f3aaf27c136b0140230624ba1f124ac5c57b8bd75d5c3bbe9f11004ae2eaaea9c6bb3b550f
 	sha512sums = 2dc6b0ba8f7dbf19d2446c5c5f1823587de89f4e28e9595937dd51a87755099656f2acec50e3e2546ea633ad1bfd1c722e0c2b91eef1d609103d8abdc0a7cbaf
 
-pkgname = linux-rockchip-git-headers
+pkgname = linux-joshua-git
 
-pkgname = linux-rockchip-git
+pkgname = linux-joshua-git-headers

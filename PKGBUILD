@@ -2,8 +2,7 @@
 # Maintainer: Jat-faan Wong
 # Contributor: Jat-faan Wong, Guoxin "7Ji" Pu, Joshua-Riek 
 
-_pkgbase=linux-rockchip-joshua
-pkgbase="${_pkgbase}"-git
+pkgbase=linux-joshua-git
 pkgname=("${pkgbase}"{,-headers})
 pkgver=6.7.0.r1235704.5b9831b062b0
 pkgrel=1

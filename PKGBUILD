@@ -2,7 +2,7 @@
 # Maintainer: Jat-faan Wong
 # Contributor: Jat-faan Wong, Guoxin "7Ji" Pu, Joshua-Riek 
 
-pkgbase=linux-joshua-git
+pkgbase=linux-aarch64-joshua-git
 pkgname=("${pkgbase}"{,-headers})
 pkgver=6.7.0.r1235704.5b9831b062b0
 pkgrel=2
